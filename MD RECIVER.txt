@@ -1,0 +1,77 @@
+// Receiver Sketch
+// Created by DIY Builder
+// Contact me https://www.instagram.com/diy.builder/
+// Before uploading the sketch you have to install the required libraries
+// First go to sketch section >> include library >> manage libaries >> Search RF24 and LiquidCrystal >> Install it >> Done
+
+#include <RF24.h>
+#include <nRF24L01.h>
+#include <SPI.h>
+
+#define sensor A7
+
+RF24 radio(10, 9);
+const byte address[6] = "00001";
+const byte address1[6] = "00003";
+
+struct Data_Package {
+  byte x1Value;
+  byte y1Value;
+  byte x2Value;
+  byte y2Value;
+  byte sValue;
+};
+
+Data_Package data;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(sensor, INPUT);
+
+  radio.begin();
+  radio.openReadingPipe(1, address);
+  radio.openWritingPipe(address1);
+  radio.setPALevel(RF24_PA_HIGH);
+
+  resetData();
+}
+
+void loop() {
+  radio.startListening();
+
+  if (radio.available()) {
+    radio.read(&data, sizeof(Data_Package));
+    lastReceiveTime = millis();
+  }
+  currentTime = millis();
+  if (currentTime - lastReceiveTime > 1000) {
+    resetData();
+  }
+  Serial.print("j1PotX: ");
+  Serial.println(data.x1Value);
+  Serial.print("j1PotY: ");
+  Serial.println(data.y1Value);
+
+  // Metal detector part can be added here
+  // Read sensorValue from your metal detector and process it as needed
+  // For example:
+  // sensorValue = analogRead(sensor);
+  // Serial.print("Metal Detector Value: ");
+  // Serial.println(sensorValue);
+
+  radio.stopListening();
+  data.sValue = sensorValue;
+  Serial.print("sensor");
+  Serial.println(sensorValue);
+  radio.write(&data, sizeof(Data_Package));
+
+  delay(5);
+}
+
+void resetData() {
+  data.x1Value = 127;
+  data.y1Value = 127;
+  data.x2Value = 127;
+  data.y2Value = 127;
+  data.sValue = 0;
+}

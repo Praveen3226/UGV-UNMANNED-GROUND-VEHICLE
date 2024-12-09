@@ -1,0 +1,28 @@
+import processing.serial.*;
+
+Serial myPort; // Create a Serial object
+
+void setup() {
+  size(400, 200); // Set the size of the window
+  myPort = new Serial(this, "COM5", 9600); // Replace "COM5" with the actual COM port your Arduino is connected to
+  myPort.bufferUntil('\n'); // Set the character to trigger the serialEvent
+  background(255); // Set the background to white
+}
+
+void draw() {
+  // No need for continuous drawing, as we update the display when new data is received.
+}
+
+void serialEvent(Serial myPort) {
+  String data = myPort.readStringUntil('\n'); // Read data until a newline character is encountered
+  if (data != null) {
+    data = data.trim(); // Remove any leading/trailing whitespace
+    println(data); // Print the received data to the console
+    
+    // Display the received data on the Processing window
+    background(255); // Clear the background
+    textSize(16); // Set text size
+    fill(0); // Set text color to black
+    text(data, 10, height / 2); // Display data on the screen
+  }
+}

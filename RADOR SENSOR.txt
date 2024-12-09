@@ -1,0 +1,200 @@
+Sure, here's a complete step-by-step procedure, including all the necessary code and instructions, in one message:
+
+**Materials you'll need**:
+
+**Transmitting Arduino (Arduino 1)**:
+1. Arduino board (e.g., Arduino Uno or Arduino Nano)
+2. HC-SR04 ultrasonic sensor
+3. HC-05 Bluetooth module
+4. Servo motor
+5. Power source for Arduino 1 (e.g., batteries or USB power supply)
+6. Breadboard and jumper wires
+
+**Receiving Arduino (Arduino 2)**:
+7. Another Arduino board (e.g., Arduino Uno or Arduino Nano)
+8. HC-05 Bluetooth module
+9. Power source for Arduino 2 (e.g., batteries)
+10. Breadboard and jumper wires
+
+**Processing Sketch**:
+11. Laptop with Processing 3 software installed.
+
+**Procedure**:
+
+**Configure HC-05 Bluetooth Modules**:
+
+1. **Transmitting Arduino (Arduino 1)**:
+   - Connect the HC-05 module to Arduino 1.
+   - Put the HC-05 module into AT command mode by holding down the KEY button, powering it on, and releasing the button.
+   - Configure the Bluetooth module with the following AT commands:
+     - `AT+NAME=Arduino1` (Set the name to "Arduino1")
+     - `AT+PIN=1234` (Set the PIN code to "1234" or a code of your choice)
+     - Type `AT+EXIT` to exit AT command mode.
+   
+2. **Receiving Arduino (Arduino 2)**:
+   - Connect the HC-05 module to Arduino 2.
+   - Put the HC-05 module into AT command mode by holding down the KEY button, powering it on, and releasing the button.
+   - Configure the Bluetooth module with the following AT commands:
+     - `AT+NAME=Arduino2` (Set the name to "Arduino2")
+     - `AT+PIN=5678` (Set the PIN code to "5678" or a code of your choice)
+     - Type `AT+EXIT` to exit AT command mode.
+
+**Transmitting Arduino (Arduino 1) Setup**:
+
+1. **Connect the Radar Sensor (HC-SR04)**:
+   - Connect the HC-SR04 to Arduino 1 as follows:
+     - Connect the sensor's VCC to 5V on Arduino 1.
+     - Connect the sensor's GND to GND on Arduino 1.
+     - Connect the sensor's Trig (trigger) pin to digital Pin 9 on Arduino 1.
+     - Connect the sensor's Echo pin to digital Pin 10 on Arduino 1.
+
+2. **Connect the Servo Motor**:
+   - Connect the servo motor to Arduino 1 as follows:
+     - Connect the servo's power (usually red) wire to 5V on Arduino 1.
+     - Connect the servo's ground (usually brown) wire to GND on Arduino 1.
+     - Connect the servo's control (usually orange) wire to digital Pin 6 on Arduino 1.
+
+3. **Wireless Module (HC-05)**:
+   - Connect the HC-05 module to Arduino 1 using SoftwareSerial on pins 2 (RX) and 3 (TX).
+   
+4. **Power Supply for Arduino 1**:
+   - Power Arduino 1 using a suitable power source, such as batteries. Ensure it's independent of the USB cable.
+
+5. **Upload Arduino Code to Arduino 1**:
+   - Upload the following Arduino code to Arduino 1. This code reads data from the HC-SR04 sensor, moves the servo motor, and sends the data via Bluetooth using the configured HC-05 module.
+
+```arduino
+#include <SoftwareSerial.h>
+#include <Servo.h>
+
+SoftwareSerial Bluetooth(2, 3); // RX, TX pins for Bluetooth module
+Servo myservo;
+const int trigPin = 9;
+const int echoPin = 10;
+int servoPos = 90;
+
+void setup() {
+  Serial.begin(9600);
+  Bluetooth.begin(9600);
+  myservo.attach(6);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+}
+
+void loop() {
+  long duration, distance;
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) / 29.1; // Convert duration to centimeters.
+
+  // Send the distance data over Bluetooth
+  Bluetooth.print("Distance: ");
+  Bluetooth.print(distance);
+  Bluetooth.print(" cm");
+  Bluetooth.println();
+
+  // Move the servo based on the distance (adjust as needed)
+  servoPos = map(distance, 0, 100, 0, 180);
+  myservo.write(servoPos);
+
+  // Optionally, print data to the serial monitor for debugging
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  delay(1000); // Send data every 1 second
+}
+```
+
+**Receiving Arduino (Arduino 2) Setup**:
+
+1. **Wireless Module (HC-05)**:
+   - Connect the HC-05 module to Arduino 2 using SoftwareSerial on pins 2 (RX) and 3 (TX).
+
+2. **Power Supply for Arduino 2**:
+   - Power Arduino 2 with a suitable power source, such as batteries. Ensure it's independent of the USB cable.
+
+3. **Bluetooth Communication with Receiving Arduino**:
+   - Upload the following Arduino code to Arduino 2. This code listens for data transmitted by Arduino 1 and sends it to the Processing sketch running on your laptop.
+
+```arduino
+#include <SoftwareSerial.h>
+
+SoftwareSerial Bluetooth(2, 3); // RX, TX pins for Bluetooth module
+
+void setup() {
+  Serial.begin(9600); // Initialize the main serial communication for debugging
+  Bluetooth.begin(9600); // Initialize the Bluetooth communication
+}
+
+void loop() {
+  if (Bluetooth.available()) {
+    char receivedChar = Bluetooth.read();
+    Serial.print(receivedChar);
+  }
+}
+```
+
+**Processing Sketch Setup**:
+
+1. **Install Processing 3**:
+   - If you haven't already, download and install Processing 3 from the official website (https://processing.org/download/).
+
+2. **Create a Processing Sketch**:
+   - Open Processing 3 and create a new sketch.
+
+3. **Bluetooth Communication with Arduino 2**:
+   - Use the `Serial` object in Processing to establish communication with Arduino 2 via Bluetooth. Use the COM port that corresponds to Arduino 2 for the `Serial` object.
+
+4. **Receive and Visualize Data**:
+   - In the Processing sketch, read the data from Arduino 2 over Bluetooth. You can parse the data and visualize it using graphics or animations within the Processing sketch.
+
+5. **Run the Processing Sketch**:
+   - Run the Processing sketch to visualize the data from Arduino 2 in real-time.
+
+Here's an example of a Processing sketch to receive and display the data sent from Arduino 2:
+
+```java
+import processing.serial.*;
+
+Serial myPort; // Create a Serial object
+
+void setup() {
+  size(400, 200); // Set the size
+
+ of the window
+  myPort = new Serial(this, "COM5", 9600); // Replace "COM5" with the actual COM port your Arduino is connected to
+  myPort.bufferUntil('\n'); // Set the character to trigger the serialEvent
+  background(255); // Set the background to white
+}
+
+void draw() {
+  // No need for continuous drawing, as we update the display when new data is received.
+}
+
+void serialEvent(Serial myPort) {
+  String data = myPort.readStringUntil('\n'); // Read data until a newline character is encountered
+  if (data != null) {
+    data = data.trim(); // Remove any leading/trailing whitespace
+    println(data); // Print the received data to the console
+    
+    // Display the received data on the Processing window
+    background(255); // Clear the background
+    textSize(16); // Set text size
+    fill(0); // Set text color to black
+    text(data, 10, height / 2); // Display data on the screen
+  }
+}
+```
+
+Customize the Processing sketch as needed for your specific visualization requirements.
+
+With this setup, Arduino 1 collects data from the radar sensor, moves the servo motor based on the distance, and sends the data via Bluetooth to Arduino 2. Arduino 2 then sends the data to a Processing 3 sketch for visualization.
+
+
+ {{{{https://chat.openai.com/share/224045b9-f387-43bd-ae50-402a8ff6d618}}}}
